@@ -2,10 +2,11 @@ package main
 
 import (
 	"net/http"
+	"reflect"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	validator "github.com/go-playground/validator/v10"
+	validator "gopkg.in/go-playground/validator.v8"
 )
 
 // User contains user information.
@@ -25,11 +26,15 @@ type User struct {
 // hooks right into validator and you can combine with validation tags and still have a
 // common error output format.
 func UserStructLevelValidation(v *validator.Validate, structLevel *validator.StructLevel) {
-	user := structLevel.Current().Interface().(User)
+	user := structLevel.CurrentStruct.Interface().(User)
 
 	if len(user.FirstName) == 0 && len(user.LastName) == 0 {
-		structLevel.ReportError(user.FirstName, "FirstName", "fname", "fnameorlname", "")
-		structLevel.ReportError(user.LastName, "LastName", "lname", "fnameorlname", "")
+		structLevel.ReportError(
+			reflect.ValueOf(user.FirstName), "FirstName", "fname", "fnameorlname",
+		)
+		structLevel.ReportError(
+			reflect.ValueOf(user.LastName), "LastName", "lname", "fnameorlname",
+		)
 	}
 
 	// plus can to more, even with different tag than "fnameorlname"
